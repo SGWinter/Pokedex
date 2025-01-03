@@ -1,2 +1,4 @@
 # ignore the build file
-/Pokedex
+Pokedex
+
+repl.log
