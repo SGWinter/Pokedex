@@ -18,7 +18,9 @@ func startRepl() {
 			continue
 		}
 
-		fmt.Println("Your command was:", inputText[0])
+		commandName := inputText[0]
+
+		fmt.Printf("Your command was: %s\n", commandName)
 	}
 }
 
