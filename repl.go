@@ -12,7 +12,12 @@ func startRepl() {
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
+
 		inputText := cleanInput(scanner.Text())
+		if len(inputText) == 0 {
+			continue
+		}
+
 		fmt.Println("Your command was:", inputText[0])
 	}
 }
