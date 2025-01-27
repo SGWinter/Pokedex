@@ -1,96 +1,40 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"log"
-	"encoding/json"
 )
 
-type resultsBody struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type bodyResults struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous string `json:"previous"`
-	Results  []resultsBody  `json:"results"`
-}
-
-func commandMap(s *config) error {
-	getURL := ""
-	if s.mapNext == "" && s.mapPrev == "" {
-		getURL = "https://pokeapi.co/api/v2/location-area/"
-	} else {
-		getURL = s.mapNext
-	}
-	res, err := http.Get(getURL)
+func commandMap(cfg *config) error {
+	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.mapNext)
 	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	body, err := io.ReadAll(res.Body)
-	defer res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-		return err
-	}
-	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 
-	b := bodyResults{}
-	err = json.Unmarshal(body, &b)
-	if err != nil {
-		log.Fatal(err)
-		return err
+	cfg.mapNext = locationsResp.Next
+	cfg.mapPrev = locationsResp.Previous
+
+	for _, loc := range locationsResp.Results {
+		fmt.Println(loc.Name)
 	}
-	for i := range b.Results {
-		fmt.Println(b.Results[i].Name)
-	}
-	s.mapNext = b.Next
-	s.mapPrev = b.Previous
 	return nil
 }
 
-func commandMapb(s *config) error {
-	getURL := ""
-	if s.mapPrev == "" {
-		fmt.Println("you're on the first page")
-		return nil
-	} else {
-		getURL = s.mapPrev
+func commandMapb(cfg *config) error {
+	if cfg.mapPrev == nil {
+		return errors.New("you're on the first page")
 	}
-	res, err := http.Get(getURL)
+
+	locationResp, err := cfg.pokeapiClient.ListLocations(cfg.mapPrev)
 	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	body, err := io.ReadAll(res.Body)
-	defer res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-		return err
-	}
-	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 
-	b := bodyResults{}
-	err = json.Unmarshal(body, &b)
-	if err != nil {
-		log.Fatal(err)
-		return err
+	cfg.mapNext = locationResp.Next
+	cfg.mapPrev = locationResp.Previous
+
+	for _, loc := range locationResp.Results {
+		fmt.Println(loc.Name)
 	}
-	for i := range b.Results {
-		fmt.Println(b.Results[i].Name)
-	}
-	s.mapNext = b.Next
-	s.mapPrev = b.Previous
 	return nil
 }

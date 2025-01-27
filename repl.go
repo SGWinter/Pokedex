@@ -5,19 +5,17 @@ import (
 	"os"
 	"fmt"
 	"bufio"
+
+	"github.com/SGWinter/Pokedex/internal/pokeapi"
 )
 
 type config struct {
-	mapNext    string
-	mapPrev    string
+	pokeapiClient pokeapi.Client
+	mapNext       *string
+	mapPrev       *string
 }
 
-func startRepl() {
-	configState := config {
-		mapNext: "",
-		mapPrev: "",
-	}
-
+func startRepl(cfg *config) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -32,7 +30,7 @@ func startRepl() {
 
 		command, exists := getCommands()[commandName]
 		if exists {
-			err := command.callback(&configState)
+			err := command.callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -53,7 +51,7 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(s *config) error
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
