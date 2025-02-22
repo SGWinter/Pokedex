@@ -15,35 +15,38 @@ type Cache struct {
 	mu         sync.Mutex
 }
 
-func NewCache(interval int) {
-	nCache := cache {
-		cache: cacheEntry{},
-		mu:    &sync.Mutex{},
+func NewCache(interval int) Cache {
+	nCache := Cache {
+		cache: map[string]cacheEntry{},
+		mu:    sync.Mutex{},
 	}
-	nCache.reapLoop()
+	nCache.reapLoop(interval)
+	return nCache
 }
 
-func (c cache) Add(key string, val []byte) {
-	c.cache[key] = val
-	return nil
+func (c Cache) Add(key string, val []byte) {
+	c.cache[key] = cacheEntry {
+		createdAt: time.Now(),
+		val: val,
+	}
 }
 
-func (c cache) Get(key string) ([]byte, bool) {
-	val, ok := c.cache[key]
+func (c Cache) Get(key string) ([]byte, bool) {
+	entry, ok := c.cache[key]
 	if ok {
-		return val, true
+		return entry.val, true
 	}
 	return nil, false
 }
 
-func (c cache) reapLoop(interval int) {
+func (c Cache) reapLoop(interval int) {
 	t := time.Now()
 	reapTime := t.Add(time.Duration(-interval) * time.Minute)
 
 	for {
 		c.mu.Lock()
 		for k := range c.cache {
-			if c.cache[k].createdAt >= reapTime {
+			if !c.cache[k].createdAt.Before(reapTime) {
 				delete(c.cache, k)
 			}
 		}

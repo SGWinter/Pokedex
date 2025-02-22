@@ -7,12 +7,10 @@ import (
 	"bufio"
 
 	"github.com/SGWinter/Pokedex/internal/pokeapi"
-	"github.com/SGWinter/Pokedex/internal/pokecache"
 )
 
 type config struct {
 	pokeapiClient pokeapi.Client
-	pokeCache     pokecache.Cache
 	mapNext       *string
 	mapPrev       *string
 }
